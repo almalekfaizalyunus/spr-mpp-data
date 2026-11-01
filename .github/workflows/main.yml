@@ -1,0 +1,30 @@
+name: Update MPP Dashboard Data
+
+on:
+  repository_dispatch:
+    types: [update_dashboard]
+
+permissions:
+  contents: write
+
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update dashboard.json
+        env:
+          DASHBOARD_DATA: ${{ toJson(github.event.client_payload.dashboard) }}
+        run: |
+          printf '%s\n' "$DASHBOARD_DATA" > dashboard.json
+
+      - name: Commit and push
+        run: |
+          git config user.name "MPP Dashboard Automation"
+          git config user.email "actions@github.com"
+          git add dashboard.json
+          git diff --cached --quiet || git commit -m "Update MPP dashboard data"
+          git push
